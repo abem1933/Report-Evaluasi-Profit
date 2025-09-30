@@ -177,10 +177,9 @@ def render_profit_analysis(monthly_data):
 def render_expense_trends(monthly_data):
     """Render expense trends analysis"""
     st.markdown("#### 💸 Tren Pengeluaran")
-    
-    # --------- Bagian 1: Tren Bulanan (stacked area chart) ---------
+
+    # Stacked area chart for monthly expenses
     fig_expenses = go.Figure()
-    
     fig_expenses.add_trace(go.Scatter(
         x=monthly_data['Month'],
         y=monthly_data['COGS'],
@@ -190,7 +189,6 @@ def render_expense_trends(monthly_data):
         line=dict(width=0.5, color='rgb(131, 90, 241)'),
         stackgroup='one'
     ))
-    
     fig_expenses.add_trace(go.Scatter(
         x=monthly_data['Month'],
         y=monthly_data['Sales_Commission'],
@@ -200,7 +198,6 @@ def render_expense_trends(monthly_data):
         line=dict(width=0.5, color='rgb(111, 231, 219)'),
         stackgroup='one'
     ))
-    
     fig_expenses.add_trace(go.Scatter(
         x=monthly_data['Month'],
         y=monthly_data['Sales_Program'],
@@ -210,63 +207,65 @@ def render_expense_trends(monthly_data):
         line=dict(width=0.5, color='rgb(255, 166, 0)'),
         stackgroup='one'
     ))
-    
     fig_expenses.update_layout(
         title="Komposisi Pengeluaran Bulanan",
         xaxis_title="Bulan",
         yaxis_title="Jumlah (Rp)",
         height=400
     )
-    
     st.plotly_chart(fig_expenses, use_container_width=True)
-    
-    # --------- Bagian 2: Breakdown Total Pengeluaran ---------
-    expense_data = pd.DataFrame({
-        "Kategori Pengeluaran": ["COGS", "Komisi Penjualan", "Program Penjualan"],
-        "Jumlah": [
-            monthly_data["COGS"].sum(),
-            monthly_data["Sales_Commission"].sum(),
-            monthly_data["Sales_Program"].sum()
-        ]
-    })
-    total_expense = expense_data["Jumlah"].sum()
-    expense_data["Persentase"] = (expense_data["Jumlah"] / total_expense) * 100
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        fig_pie = px.pie(
-            expense_data,
-            values="Jumlah",
-            names="Kategori Pengeluaran",
-            title="Distribusi Pengeluaran",
-            color_discrete_sequence=px.colors.qualitative.Set3
-        )
-        fig_pie.update_traces(textposition='inside', textinfo='percent+label')
-        st.plotly_chart(fig_pie, use_container_width=True)
-    
-    with col2:
-        fig_bar = px.bar(
-            expense_data,
-            x="Kategori Pengeluaran",
-            y="Jumlah",
-            title="Jumlah Pengeluaran per Kategori",
-            color="Kategori Pengeluaran",
-            text="Jumlah",
-            color_discrete_sequence=px.colors.qualitative.Set3
-        )
-        fig_bar.update_traces(texttemplate="Rp %{y:,.0f}", textposition="outside")
-        st.plotly_chart(fig_bar, use_container_width=True)
-    
-    # --------- Bagian 3: Tabel Ringkasan ---------
-    st.markdown("#### 📋 Persentase terhadap Revenue")
-    expense_df = {
-        "Kategori Pengeluaran": expense_data["Kategori Pengeluaran"],
-        "Jumlah (Rp)": [f"Rp {val:,.0f}" for val in expense_data["Jumlah"]],
-        "Persentase dari Total Pengeluaran": [f"{val:.2f}%" for val in expense_data["Persentase"]]
-    }
-    st.table(expense_df)
 
+    # --- Breakdown pengeluaran (pie + bar + tabel persentase) ---
+    st.markdown("#### 🧾 Breakdown Pengeluaran")
+
+    latest_month = monthly_data.iloc[-1] if not monthly_data.empty else None
+    if latest_month is not None:
+        expense_data = {
+            'Kategori': ['COGS', 'Komisi Penjualan', 'Program Penjualan'],
+            'Jumlah': [
+                latest_month['COGS'],
+                latest_month['Sales_Commission'],
+                latest_month['Sales_Program']
+            ]
+        }
+        expense_df = pd.DataFrame(expense_data)
+        total_expense = expense_df['Jumlah'].sum()
+        expense_df['Persentase'] = (expense_df['Jumlah'] / total_expense * 100).round(2)
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            fig_pie = px.pie(
+                expense_df,
+                values='Jumlah',
+                names='Kategori',
+                title="Distribusi Pengeluaran",
+                color_discrete_sequence=px.colors.qualitative.Pastel
+            )
+            fig_pie.update_traces(textposition='inside', textinfo='percent+label')
+            st.plotly_chart(fig_pie, use_container_width=True)
+
+        with col2:
+            fig_bar = px.bar(
+                expense_df,
+                x='Kategori',
+                y='Jumlah',
+                title="Jumlah Pengeluaran per Kategori",
+                text=expense_df['Jumlah'].apply(lambda x: f"Rp {x:,.0f}"),
+                color='Kategori',
+                color_discrete_sequence=px.colors.qualitative.Set3
+            )
+            fig_bar.update_layout(xaxis_title="Kategori", yaxis_title="Jumlah (Rp)")
+            st.plotly_chart(fig_bar, use_container_width=True)
+
+        # Tabel persentase
+        st.markdown("#### 📊 Persentase terhadap Total Pengeluaran")
+        expense_df_display = expense_df.copy()
+        expense_df_display['Jumlah'] = expense_df_display['Jumlah'].apply(lambda x: f"Rp {x:,.0f}")
+        expense_df_display['Persentase'] = expense_df_display['Persentase'].apply(lambda x: f"{x:.2f}%")
+        st.table(expense_df_display)
+    else:
+        st.info("💡 Tidak ada data pengeluaran untuk ditampilkan.")
 
 def render_daily_trends(df):
     """Render daily trends if enough data points"""
