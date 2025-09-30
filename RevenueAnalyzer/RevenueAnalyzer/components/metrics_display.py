@@ -142,23 +142,6 @@ def render_metrics(metrics, calculator):
             fig_pie.update_traces(textposition='inside', textinfo='percent+label')
             st.plotly_chart(fig_pie, use_container_width=True)
         
-        with col2:
-            # Bar chart for expense amounts
-            fig_bar = px.bar(
-                x=expense_data['Kategori'],
-                y=expense_data['Jumlah'],
-                title="Jumlah Pengeluaran per Kategori",
-                color=expense_data['Kategori'],
-                color_discrete_sequence=px.colors.qualitative.Set3
-            )
-            fig_bar.update_layout(
-                xaxis_title="Kategori",
-                yaxis_title="Jumlah (Rp)",
-                showlegend=False
-            )
-            fig_bar.update_traces(text=[f"Rp {val:,.0f}" for val in expense_data['Jumlah']], textposition='outside')
-            st.plotly_chart(fig_bar, use_container_width=True)
-        
         # Expense percentage table
         st.markdown("#### 📊 Persentase terhadap Revenue")
         expense_df = {
