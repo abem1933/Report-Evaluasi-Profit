@@ -178,7 +178,7 @@ def render_expense_trends(monthly_data):
     """Render expense trends analysis"""
     st.markdown("#### 💸 Tren Pengeluaran")
     
-    # --------- Bagian 1: Tren Bulanan (stacked area chart) ---------
+    # Stacked area chart for expenses
     fig_expenses = go.Figure()
     
     fig_expenses.add_trace(go.Scatter(
@@ -219,53 +219,6 @@ def render_expense_trends(monthly_data):
     )
     
     st.plotly_chart(fig_expenses, use_container_width=True)
-    
-    # --------- Bagian 2: Breakdown Total Pengeluaran ---------
-    expense_data = pd.DataFrame({
-        "Kategori Pengeluaran": ["COGS", "Komisi Penjualan", "Program Penjualan"],
-        "Jumlah": [
-            monthly_data["COGS"].sum(),
-            monthly_data["Sales_Commission"].sum(),
-            monthly_data["Sales_Program"].sum()
-        ]
-    })
-    total_expense = expense_data["Jumlah"].sum()
-    expense_data["Persentase"] = (expense_data["Jumlah"] / total_expense) * 100
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        fig_pie = px.pie(
-            expense_data,
-            values="Jumlah",
-            names="Kategori Pengeluaran",
-            title="Distribusi Pengeluaran",
-            color_discrete_sequence=px.colors.qualitative.Set3
-        )
-        fig_pie.update_traces(textposition='inside', textinfo='percent+label')
-        st.plotly_chart(fig_pie, use_container_width=True)
-    
-    with col2:
-        fig_bar = px.bar(
-            expense_data,
-            x="Kategori Pengeluaran",
-            y="Jumlah",
-            title="Jumlah Pengeluaran per Kategori",
-            color="Kategori Pengeluaran",
-            text="Jumlah",
-            color_discrete_sequence=px.colors.qualitative.Set3
-        )
-        fig_bar.update_traces(texttemplate="Rp %{y:,.0f}", textposition="outside")
-        st.plotly_chart(fig_bar, use_container_width=True)
-    
-    # --------- Bagian 3: Tabel Ringkasan ---------
-    st.markdown("#### 📋 Persentase terhadap Revenue")
-    expense_df = {
-        "Kategori Pengeluaran": expense_data["Kategori Pengeluaran"],
-        "Jumlah (Rp)": [f"Rp {val:,.0f}" for val in expense_data["Jumlah"]],
-        "Persentase dari Total Pengeluaran": [f"{val:.2f}%" for val in expense_data["Persentase"]]
-    }
-    st.table(expense_df)
 
 def render_daily_trends(df):
     """Render daily trends if enough data points"""
