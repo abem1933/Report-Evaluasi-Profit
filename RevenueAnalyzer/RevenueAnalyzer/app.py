@@ -33,7 +33,7 @@ if 'data_source' not in st.session_state:
     st.session_state.data_source = 'database'
 
 def main():
-    st.title("📊 Dashboard Laporan Keuangan - Evaluasi Profit")
+    st.title("📊 Exposure Konsolidasi Kontribusi Profit")
     st.markdown("---")
     
     # Initialize components
